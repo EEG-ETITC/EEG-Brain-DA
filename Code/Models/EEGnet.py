@@ -77,11 +77,10 @@ weight_decay = [1e-7]
 batch_size = 64
 n_epochs = 25
 
-parameters={"optimizer__lr":lr, "optimizer__weight_decay":weight_decay, "module__drop_prob":np.linspace(0, 0.2, 2),
-            "module__activation": [torch.nn.RReLU], "module__final_conv_length": ["auto", 512],
-            "module__F1": [4, 8, 12], "module__D": [2, 4], "module__kernel_length": [32, 64],
-            "module__pool1_kernel_size": [4, 8], "module__pool2_kernel_size": [ 4, 8], "module__batch_norm_affine": [True],
-            "module__n_times": [n_times], "module__n_chans":[n_chans], "module__n_outputs":[len(outputs)], "module__sfreq":[128]}
+parameters={"optimizer__lr":lr, "optimizer__weight_decay":weight_decay, "module__drop_prob":[0.1],
+            "module__activation": [torch.nn.RReLU], "module__F1": [8, 12], "module__D": [2, 4], "module__kernel_length": [32, 64],
+            "module__batch_norm_affine": [True], "module__n_times": [n_times], "module__n_chans":[n_chans], 
+            "module__n_outputs":[len(outputs)], "module__sfreq":[128]}
 
 
 clf = EEGClassifier(

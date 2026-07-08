@@ -1,5 +1,6 @@
 # Large data files
 Code/raw_tif/
+raw_tif/
 Code/Results/
 Code/Image/
 Code/prove/
@@ -46,8 +47,10 @@ ENV/
 .DS_Store
 Thumbs.db
 .env
+._*
 
 # Model files (if too large)
 *.pth
 *.pt
 *.h5
+*.fif
