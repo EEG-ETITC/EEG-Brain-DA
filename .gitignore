@@ -1,0 +1,6 @@
+﻿# Ignore large data folders
+Code/raw_tif/
+Code/Results/
+Code/Image/
+Code/prove/
+
