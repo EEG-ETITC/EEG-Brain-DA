@@ -90,13 +90,12 @@ def data_train(raw_list: list, df_demog: array, wind_size: int, over_lap: int, p
 def cv_patients(patients: list, n_split=5, shuffle=True, random_state=0) -> list:
     """Genera particiones de pacientes para validación cruzada por folds."""
     random.seed(random_state)
-    n_split = 5
 
     # Determina el orden de los pacientes para crear los folds.
     if shuffle:
-        index = random.permutation(pd.unique(patients))
+        index = random.permutation(list(set(patients)))
     else:
-        index = pd.unique(patients)
+        index = pd.unique(list(set(patients)))
 
     # Calcula el tamaño de cada partición.
     len_partition = len(index) // n_split
@@ -117,24 +116,30 @@ def cv_patients(patients: list, n_split=5, shuffle=True, random_state=0) -> list
 def patient_stratify_split(demograp_data, train_size=0.8, shuffle=True):
     """Divide los pacientes manteniendo la proporción de clases en los conjuntos."""
     # Obtiene una etiqueta por paciente para conservar el equilibrio de clases.
-    Y = demograp_data.reset_index().drop_duplicates(subset=["Id_Patient"])["numeric_outcome"]
-    etiquetas = Y.value_counts(normalize=True).index.tolist()
+    demograp_data.reset_index(inplace=True, drop=True) 
 
+    Y = demograp_data.drop_duplicates(subset=["Id_Patient"])["numeric_outcome"]
+    etiquetas = Y.value_counts(normalize=True).index.tolist()
     indx_train = []
     indx_val = []
-
     # Para cada clase, toma una muestra de entrenamiento y el resto como validación.
     for l in etiquetas:
-        y = pd.unique(demograp_data[demograp_data["numeric_outcome"] == l].index.tolist())
+        patient_y= list(set(demograp_data[demograp_data["numeric_outcome"] == l]["Id_Patient"]))
         if shuffle:
-            y = random.permutation(y)
-        indx_train.append(random.choice(y, size=int(train_size * len(y)), replace=False).tolist())
-        indx_val.append(list(set(y) - set(indx_train[-1])))
+            patient_y = random.permutation(patient_y)
+        indx_train.append(random.choice(patient_y, size=int(train_size * len(patient_y)), replace=False).tolist())
+        indx_val.append(list(set(patient_y) - set(indx_train[-1])))
 
     patients_train = [item for sublist in indx_train for item in sublist]
     patients_val = [item for sublist in indx_val for item in sublist]
+    ind_train=[]
+    for i in [demograp_data[demograp_data["Id_Patient"]==i].index.to_list() for i in patients_train]:
+        ind_train+=i
 
-    return patients_train, patients_val
+    ind_val=[]
+    for i in [demograp_data[demograp_data["Id_Patient"]==i].index.to_list() for i in patients_val]:
+        ind_val+=i
+    return ind_train, ind_val
 ############################################################
 
 

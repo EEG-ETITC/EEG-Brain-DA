@@ -706,10 +706,48 @@ def interpolation_corr(raw, ch_name):
     r, _ = pearsonr(x_orig, x_interp)
     return r
 
+    
+def interpolation_error(raw, ch_name):
+    """
+    Calcula el error Normalizado (RMSE) entre un canal original biológico y su versión interpolada esféricamente.
+
+    Parameters
+    ----------
+    raw : mne.io.RawArray
+        Datos crudos provenientes de registro standard.
+    ch_name : str
+        Nombre clave del electrodo en cadena donde focalizar el análisis.
+
+    Returns
+    -------
+    float
+        Cálculo del RMS numérico normalizado. Valores altos indican alta susceptibilidad o error en malla.
+    """
+    raw.set_montage("standard_1020")
+    raw.pick_types(eeg=True)
+    raw_copy = raw.copy()
+
+    # Señal original verdadera
+    x_orig = raw_copy.get_data(picks=[ch_name])[0]
+
+    # Marcar canal agresivamente como malo / artefacto total
+    raw_copy.info["bads"] = [ch_name]
+
+    # Interpolar topográficamente utilizando las adyacencias libres de "bads"
+    raw_copy.interpolate_bads(reset_bads=True)
+
+    # Re-Extraer Señal de voltaje interpolada
+    x_interp = raw_copy.get_data(picks=[ch_name])[0]
+
+    # Calcular Error Cuadrático Medio a Nivel Base Normalizado estadísticamente, evitando división sobre 0.
+    error = np.sqrt(np.mean((x_orig - x_interp) **2)) / (np.std(x_orig)+1e-6)
+
+    return error
 
 
 
-def read_raws(path_files: str, time_taken: float = None, del_files=False):
+
+def read_raws(path_files: str, time_taken: float = None, del_files=False, k_prove=None):
     """
     Recorredor nativo de almacenamiento en bruto. Levanta al vuelo cualquier pre-procesado listado
     `.fif` (binario temporal en crudo generalizado por MNE) del disco y valida longitudes biológicas mínimas de la serie.
@@ -731,8 +769,11 @@ def read_raws(path_files: str, time_taken: float = None, del_files=False):
     """
     file_list = os.listdir(path_files)
     
+    if k_prove>1:
+        file_list=file_list[:k_prove]
+    
     # Carga Pre-Launch de MNE asegurándose que la RAM los acople sin retrasos lazy (preload=True)
-    raw_list = [mne.io.read_raw_fif(path_files+file, preload=True) for file in file_list]
+    raw_list = [mne.io.read_raw_fif(path_files+file, preload=True, verbose=0) for file in file_list]
     
     # Suponer convencionalmente que el nombre del fichero FIF es `xxx_1234.fif`
     patients = [file.split(".")[0][-4:] for file in file_list]

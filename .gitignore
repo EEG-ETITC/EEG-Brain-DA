@@ -1,6 +1,20 @@
-﻿# Ignore large data folders
+﻿## Keep large raw data out of this branch
 Code/raw_tif/
-Code/Results/
-Code/Image/
-Code/prove/
+
+# Python cache and artifacts
+__pycache__/
+*.py[cod]
+*.pyc
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# OS
+.DS_Store
+Thumbs.db
 

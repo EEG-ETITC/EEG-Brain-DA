@@ -33,7 +33,7 @@ class CNN_LSTM_Model(nn.Module):
             bidirectional=False,
         )
 
-        # --- Clasificador final MPL---
+        # --- Clasificador final ---
         self.classifier = nn.Sequential(
             nn.Linear(lstm_hidden, linear_layer_classifier),
             nn.Sigmoid(),
@@ -47,23 +47,23 @@ class CNN_LSTM_Model(nn.Module):
     def forward(self, x):
 
         """
-        x: [B, T, Channels, Patches] -> [B, T, 1, 19, 200]
+        x: [B, T, C, F]
         """
 
-        B, T, C, P = x.shape
+        B, T, C, F = x.shape
         
 
         # -------- CNN vectorizada --------
-        # x = x.view(B*T, 1, C, P)        # [B*T,1,C,P]
-        x = x.view(B, T, C, P)        # [B,T,C,P]
+        # x = x.view(B*T, 1, C, F)        # [B*T,1,C,F]
+        x = x.view(B, T, C, F)        # [B,T,C,F]
 
         # feat = self.cnn(x)              # [B*T,cnn_out,19,32]
         # feat = feat.flatten(1)
         cnn_features = []
         
         for t in range(T):
-            # x[:, t]: [B, C, P]
-            xt = x[:, t].unsqueeze(1)  # -> [B, 1, C, P]
+            # x[:, t]: [B, C, F]
+            xt = x[:, t].unsqueeze(1)  # -> [B, 1, C, F]
             feat_t = self.cnn(xt)      # -> [B, cnn_out, 1, 1]
             # print(feat_t.view(B, -1).shape)
             feat_t = feat_t.view(B, -1)  # -> [B, cnn_out]
