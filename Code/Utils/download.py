@@ -706,6 +706,44 @@ def interpolation_corr(raw, ch_name):
     r, _ = pearsonr(x_orig, x_interp)
     return r
 
+    
+def interpolation_error(raw, ch_name):
+    """
+    Calcula el error Normalizado (RMSE) entre un canal original biológico y su versión interpolada esféricamente.
+
+    Parameters
+    ----------
+    raw : mne.io.RawArray
+        Datos crudos provenientes de registro standard.
+    ch_name : str
+        Nombre clave del electrodo en cadena donde focalizar el análisis.
+
+    Returns
+    -------
+    float
+        Cálculo del RMS numérico normalizado. Valores altos indican alta susceptibilidad o error en malla.
+    """
+    raw.set_montage("standard_1020")
+    raw.pick_types(eeg=True)
+    raw_copy = raw.copy()
+
+    # Señal original verdadera
+    x_orig = raw_copy.get_data(picks=[ch_name])[0]
+
+    # Marcar canal agresivamente como malo / artefacto total
+    raw_copy.info["bads"] = [ch_name]
+
+    # Interpolar topográficamente utilizando las adyacencias libres de "bads"
+    raw_copy.interpolate_bads(reset_bads=True)
+
+    # Re-Extraer Señal de voltaje interpolada
+    x_interp = raw_copy.get_data(picks=[ch_name])[0]
+
+    # Calcular Error Cuadrático Medio a Nivel Base Normalizado estadísticamente, evitando división sobre 0.
+    error = np.sqrt(np.mean((x_orig - x_interp) **2)) / (np.std(x_orig)+1e-6)
+
+    return error
+
 
 
 
